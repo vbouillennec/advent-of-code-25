@@ -7,20 +7,55 @@ const ingredientIDsRanges = ingredientIDsRangesPart.split("\n").map((line) => {
     return { start: Number(start), end: Number(end) };
 });
 
-const freshIngredients = new Set<number>();
+const sortedRanges = ingredientIDsRanges.sort((a, b) => {
+  if (a.start !== b.start) {
+    return a.start - b.start;
+  }
+  return a.end - b.end;
+});
 
-function getFreshIngredientsInRanges() {
-    for (const ingredientIDsRange of ingredientIDsRanges) {
-        const rangeStart = ingredientIDsRange.start;
-        const rangeEnd = ingredientIDsRange.end;
-        for (let i = rangeStart; i <= rangeEnd; i++) {
-            freshIngredients.add(i);
+console.log('sortedRanges', sortedRanges);
+
+
+function simplifyRanges() {
+    let prevRange = {start: 0, end: 0};
+    const simplifiedRanges = [];
+    for (const idsRange of sortedRanges) {
+        const rangeStart = idsRange.start;
+        const rangeEnd = idsRange.end;
+        // console.log(`${prevRange} VS ${idsRange}`);
+        if(rangeStart >= prevRange.start && rangeEnd <= prevRange.end) {
+            continue;
         }
+        if(rangeStart >= prevRange.start && rangeStart <= prevRange.end && rangeEnd >= prevRange.end){
+            const simplifiedRange = {start: prevRange.start, end: rangeEnd};
+            prevRange = simplifiedRange;
+            simplifiedRanges.pop();
+            simplifiedRanges.push(simplifiedRange);
+        } else {
+            prevRange = idsRange;
+            simplifiedRanges.push(idsRange);
+        }
+        // console.log(prevRange);
     }
+    return simplifiedRanges;
 }
 
-getFreshIngredientsInRanges();
+function countIdsInRanges(ranges) {
+    let nbIds = 0;
+    for(const range of ranges) {
+        nbIds += (range.end - range.start) + 1;
+        // console.log(range);
+        // console.log(nbIds);
+    }
+    return nbIds;
+}
 
-const nbOfFreshIngredients = freshIngredients.size;
+const simplifiedRanges = simplifyRanges();
 
-console.log(nbOfFreshIngredients);
+// console.log('simplifiedRanges', simplifiedRanges);
+
+
+console.log(countIdsInRanges(simplifiedRanges));
+
+
