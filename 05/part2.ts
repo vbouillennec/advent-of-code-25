@@ -6,26 +6,21 @@ const ingredientIDsRanges = ingredientIDsRangesPart.split("\n").map((line) => {
     const [start, end] = line.split("-");
     return { start: Number(start), end: Number(end) };
 });
-const availableIngredients = availableIngredientsPart.split("\n").map(ingredient => Number(ingredient));
 
-function checkAllIngredientsFreshness(ingredients: number[]): number {
-    let freshIngredients = 0;
-    for (const ingredient of ingredients) {
-        if (checkIngredientFreshness(ingredient))
-            freshIngredients++;
-    }
-    return freshIngredients;
-}
-function checkIngredientFreshness(ingredient: number) {
+const freshIngredients = new Set<number>();
+
+function getFreshIngredientsInRanges() {
     for (const ingredientIDsRange of ingredientIDsRanges) {
         const rangeStart = ingredientIDsRange.start;
         const rangeEnd = ingredientIDsRange.end;
-        if (ingredient >= rangeStart && ingredient <= rangeEnd)
-            return true;
+        for (let i = rangeStart; i <= rangeEnd; i++) {
+            freshIngredients.add(i);
+        }
     }
-    return false;
 }
 
-const nbOfFreshIngredients = checkAllIngredientsFreshness(availableIngredients);
+getFreshIngredientsInRanges();
+
+const nbOfFreshIngredients = freshIngredients.size;
 
 console.log(nbOfFreshIngredients);
