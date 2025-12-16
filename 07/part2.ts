@@ -1,12 +1,13 @@
 import fs from 'fs';
 
-const input = fs.readFileSync('./07/input2.txt').toString();
+const input = fs.readFileSync('./07/input.txt').toString();
 
 const map2D = input.split('\n').map(line => line.split(''));
 
 let nbOfTimelines = 0;
 const startPos = map2D[0].indexOf('S');
 const tachyonBeams = new Set([startPos]);
+const paths = new Map<string, number[]>();
 
 function drawTachyonBeam() {
 	let splitCount = 0;
@@ -34,26 +35,27 @@ function countTimelines() {
 	const lastLineIndex = 1;
 	for (let i = 0; i < map2D[lastLineIndex].length; i++) {
 		if (map2D[lastLineIndex][i] === '|') {
-			console.log(`starting backtrack from li: ${lastLineIndex}, ci: ${i}, ${tachyonBeams.size} beams`);
-			tryATimeline(lastLineIndex, i);
+			const potentialPath = new Map();
+			tryATimeline(lastLineIndex, i, potentialPath);
 		}
 	}
 }
 
-function tryATimeline(lineIndex: number, colIndex: number) {
+function tryATimeline(lineIndex: number, colIndex: number, potentialPath: Map<string, number[]>) {
 	const li = lineIndex + 1;
 	const ci = colIndex;
-	if (li === 0 && map2D[li][ci] === 'S') {
+	potentialPath.set(`[${li},${ci}]`, [li,ci]);
+	if (li === (map2D.length - 1) && map2D[li][ci] === '|') {
 		nbOfTimelines++;
 		return;
 	}
 	if (map2D[li][ci] === '|') {
 		tryATimeline(li, ci);
 	}
-	if (map2D[li + 1][ci + 1] === '^' && map2D[li][ci + 1] === '|') {
+	if (map2D[li][ci] === '^' && map2D[li][ci + 1] === '|') {
 		tryATimeline(li, ci + 1);
 	}
-	if (map2D[li + 1][ci - 1] === '^' && map2D[li][ci - 1] === '|') {
+	if (map2D[li][ci] === '^' && map2D[li][ci - 1] === '|') {
 		tryATimeline(li, ci - 1);
 	}
 }
