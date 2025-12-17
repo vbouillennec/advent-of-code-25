@@ -9,9 +9,7 @@ const splits = new Map<string, number>();
 
 function countTimelines() {
 	const firstLineIndex = 1;
-	for (let i = 0; i < map2D[firstLineIndex].length; i++) {
-		return tryATimeline(firstLineIndex, startPos);
-	}
+	return tryATimeline(firstLineIndex, startPos);
 }
 
 function tryATimeline(lineIndex: number, colIndex: number) {
@@ -29,8 +27,7 @@ function tryATimeline(lineIndex: number, colIndex: number) {
 		splits.set(`[${li},${ci}]`, (leftTimeline + rightTimeline));
 		return leftTimeline + rightTimeline;
 	}
-	const straightTimeline = tryATimeline(li, ci);
-	return straightTimeline;
+	return tryATimeline(li, ci);
 }
 
 const nbOfTimelines = countTimelines();
