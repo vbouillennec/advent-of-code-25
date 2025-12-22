@@ -24,6 +24,11 @@ interface Machine {
 	joltageRequirements: number[],
 }
 
+interface Combination {
+	buttonsPressed: number[],
+	result: number,
+}
+
 function getBinaryOfLights(lightDiagram: string[]): string {
 	return lightDiagram.reduce((acc, light) => {
 		return (light === '#') ? acc + '1' : acc + '0';
@@ -47,9 +52,8 @@ function getBinaryOfButtons(buttons: string, binLength: number): number[] {
 	return binButtons;
 }
 
-
-function tryCombinations(binButtons: number[], buttonCombinations: { buttonsPressed: number[], result: number }[], expectedResult: number) {
-	const newButtonCombinations: { buttonsPressed: number[], result: number }[] = [];
+function tryCombinations(binButtons: number[], buttonCombinations: Combination[], expectedResult: number) {
+	const newButtonCombinations: Combination[] = [];
 	for (const combination of buttonCombinations) {
 		for (let j = 0; j < binButtons.length; j++) {
 			const combined = combination.result ^ binButtons[j];
@@ -68,10 +72,11 @@ function matchIndicatorLights(machine: Machine): number {
 	const nbOfLight = lightDiagram.length;
 	const binLights: number = parseInt(getBinaryOfLights(lightDiagram), 2);
 	const binButtons = getBinaryOfButtons(buttons, nbOfLight);
-	const iMatchBtn = binButtons.indexOf(binLights);
-	const buttonCombinations = binButtons.map((button, i) => {
+	const buttonCombinations: Combination[] = binButtons.map((button, i) => {
 		return { buttonsPressed: [i], result: button }
 	})
+	const iMatchBtn = binButtons.indexOf(binLights);
+	// if a button solo directly match the diagram
 	if (iMatchBtn !== -1) {
 		return 1;
 	}

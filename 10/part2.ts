@@ -1,12 +1,11 @@
 import fs from 'fs';
 
-const lines = fs.readFileSync('./10/input2.txt').toString().split('\n');
+const lines = fs.readFileSync('./10/input.txt').toString().split('\n');
 
 const regex = /\[(\S+)\]\s(.*)\s\{(\S+)\}/;
 const machines: Machine[] = lines.map((line) => {
     const matches = line.match(regex);
     return {
-        lightDiagram: matches[1].split(''),
         buttons: matches[2],
         joltageRequirements: matches[3].split(',').map(Number),
     };
@@ -19,64 +18,49 @@ console.log(totalNumberOfPresses);
 /* Functions */
 
 interface Machine {
-    lightDiagram: string[],
     buttons: string,
     joltageRequirements: number[],
 }
 
-function getBinaryOfLights(lightDiagram: string[]): string {
-    return lightDiagram.reduce((acc, light) => {
-        return (light === '#') ? acc + '1' : acc + '0';
-    }, '');
+interface Combination {
+    buttonsPressed: number[],
+    joltage: number[],
 }
 
-function getBinaryOfButtons(buttons: string, binLength: number): number[] {
-    const binButtons = [];
-    const regex: RegExp = /\(([^)]+)\)/g;
-    const buttonsSwitches: string[] = [...buttons.matchAll(regex)].map((match) => match[1]);
-    for (const button of buttonsSwitches) {
-        const switches = button.split(',');
-        let binButton = 0;
-        for (const aSwitch of switches) {
-            const rightPos = (binLength - 1) - Number(aSwitch);
-            const bin = 0 ^ 1 << rightPos;
-            binButton = binButton ^ bin;
-        }
-        binButtons.push(binButton);
-    }
-    return binButtons;
-}
-
-
-function tryCombinations(binButtons: number[], buttonCombinations: { buttonsPressed: number[], result: number }[], expectedResult: number) {
-    const newButtonCombinations: { buttonsPressed: number[], result: number }[] = [];
-    for (const combination of buttonCombinations) {
-        for (let j = 0; j < binButtons.length; j++) {
-            const combined = combination.result ^ binButtons[j];
-            const newButtonsPressed = [...combination.buttonsPressed, j];
-            newButtonCombinations.push({ buttonsPressed: newButtonsPressed, result: combined });
-            if (combined === expectedResult) {
-                return newButtonsPressed.length;
+function tryCombinations(buttonsSwitches: number[][], combinations: Combination[], expectedResult: number[]) {
+    const newButtonCombinations: Combination[] = [];
+    for (const combination of combinations) {
+        for (let j = 0; j < buttonsSwitches.length; j++) {
+            console.log(`combination:`, combination);
+            const newCombination = pressButton(buttonsSwitches[j], combination);
+            newCombination.buttonsPressed.push(j);
+            newButtonCombinations.push(newCombination);
+            if (JSON.stringify(newCombination.joltage) === JSON.stringify(expectedResult)) {
+                return newCombination.buttonsPressed.length;
             }
         }
     }
-    return tryCombinations(binButtons, newButtonCombinations, expectedResult);
+    return tryCombinations(buttonsSwitches, newButtonCombinations, expectedResult);
+}
+
+function pressButton(button: number[], combination: Combination): Combination {
+    const newCombination = { ...combination };
+    for (const pos of button) {
+        newCombination.joltage[pos]++;
+    }
+
+    return newCombination;
 }
 
 function matchIndicatorLights(machine: Machine): number {
-    const { lightDiagram, buttons } = machine;
-    const nbOfLight = lightDiagram.length;
-    const binLights: number = parseInt(getBinaryOfLights(lightDiagram), 2);
-    const binButtons = getBinaryOfButtons(buttons, nbOfLight);
-    const iMatchBtn = binButtons.indexOf(binLights);
-    const buttonCombinations = binButtons.map((button, i) => {
-        return { buttonsPressed: [i], result: button }
-    })
-    if (iMatchBtn !== -1) {
-        return 1;
-    }
-    // Try combining buttons
-    return tryCombinations(binButtons, buttonCombinations, binLights);
+    const { buttons, joltageRequirements } = machine;
+    const nbOfJoltage = joltageRequirements.length;
+    const initJoltage: number[] = Array(nbOfJoltage).fill(0);
+    const regex: RegExp = /\(([^)]+)\)/g;
+    const buttonsSwitches: number[][] = [...buttons.matchAll(regex)].map((match) => match[1].split(',').map(Number));
+    const initCombination: Combination[] = [{ buttonsPressed: [], joltage: initJoltage }];
+    // // Try combining buttons
+    return tryCombinations(buttonsSwitches, initCombination, joltageRequirements);
 }
 
 function matchAllIndicatorLights(machines: Machine[]): number {
